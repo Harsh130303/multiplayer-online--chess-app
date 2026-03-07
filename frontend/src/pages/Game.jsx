@@ -109,6 +109,8 @@ const Game = () => {
         fetchGame();
         if (!user) return;
 
+        const token = localStorage.getItem('token');
+        const gid = gameId.toLowerCase();
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const ws = new WebSocket(`${protocol}//${window.location.host}/api/game/${gid}/ws?token=${token}`);
 

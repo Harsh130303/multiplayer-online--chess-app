@@ -20,22 +20,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Prefix all API routes with /api
 app.include_router(router, prefix="/api")
 
 # Serve static files from the React build
 if os.path.exists("frontend/dist"):
+    # Mount the assets specifically
     app.mount("/static", StaticFiles(directory="frontend/dist", html=True), name="static")
 
     @app.get("/{full_path:path}")
     async def serve_react_app(request: Request, full_path: str):
-        # If the path starts with /api, let the router handle it
-        if full_path.startswith("api"):
-            return None
+        # If the path starts with api/, the router above should have handled it.
+        # If we are here, it means the router didn't find the path.
+        if full_path.startswith("api/"):
+            return HTMLResponse(status_code=404, content="API Route not found")
         
         # Check if the requested path is a file in the dist folder
         file_path = os.path.join("frontend/dist", full_path)
         if os.path.isfile(file_path):
             return await StaticFiles(directory="frontend/dist").get_response(full_path, scope=request.scope)
             
-        # Otherwise, serve index.html for React Router
+        # Otherwise, serve index.html for React Router (SPA)
         return FileResponse("frontend/dist/index.html")
