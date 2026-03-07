@@ -20,3 +20,6 @@ class Move(BaseModel):
     from_square: str
     to_square: str
     promotion: Optional[str] = None
+
+class JoinRequest(BaseModel):
+    color: str

@@ -30,5 +30,5 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 EXPOSE 8080
 
 # Start the application
-# We use Gunicorn with Uvicorn workers for production stability
-CMD gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8080}
+# We MUST use --workers 1 because WebSocket connections are stored in-memory
+CMD gunicorn main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8080}

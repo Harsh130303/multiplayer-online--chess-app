@@ -99,7 +99,8 @@ def create_game(game_in: Optional[schemas.GameCreate] = None, current_user: str 
     return {"success": True, "game_id": new_game.id}
 
 @router.post("/game/{game_id}/join")
-async def join_game(game_id: str, color: str = Query(...), current_user: str = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+async def join_game(game_id: str, join_req: schemas.JoinRequest, current_user: str = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    color = join_req.color
     game_id = game_id.lower()
     game = db.query(models.Game).filter(models.Game.id == game_id).first()
     if not game: raise HTTPException(status_code=404, detail="Game not found")
