@@ -111,48 +111,91 @@ const Game = () => {
         fetchGame();
         if (!user) return;
 
-        const token = localStorage.getItem('token');
-        const gid = gameId.toLowerCase();
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const ws = new WebSocket(`${protocol}//${window.location.host}/api/game/${gid}/ws?token=${token}`);
+        let ws = null;
+        let reconnectTimeout = null;
+        let heartbeatInterval = null;
+        let reconnectCount = 0;
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'move') {
-                setGameState(prev => ({
-                    ...prev,
-                    board: data.board,
-                    turn: data.next_turn,
-                    status: data.status,
-                    game_over_reason: data.game_over_reason,
-                    white_time: data.white_time,
-                    black_time: data.black_time,
-                    last_move_at: data.last_move_at
-                }));
-                if (data.last_move) setLastMove(data.last_move);
-                setValidMoves([]);
-            } else if (data.type === 'player_joined') {
-                setGameState(prev => ({
-                    ...prev,
-                    players: { ...prev.players, [data.color]: data.username },
-                    last_move_at: data.last_move_at || prev.last_move_at
-                }));
+        const connect = () => {
+            const token = localStorage.getItem('token');
+            const gid = gameId.toLowerCase();
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/game/${gid}/ws?token=${token}`;
 
-                // Only set myColor if we don't have one and this is us
-                const myName = user.username.trim().toLowerCase();
-                const joinedName = (data.username || '').trim().toLowerCase();
-                if (joinedName === myName) {
-                    setMyColor(data.color);
+            console.log(`Connecting to WebSocket: ${wsUrl}`);
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket Connected');
+                reconnectCount = 0;
+                // Start heartbeat
+                heartbeatInterval = setInterval(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send('ping');
+                    }
+                }, 30000);
+            };
+
+            ws.onmessage = (event) => {
+                if (event.data === 'pong') return;
+                const data = JSON.parse(event.data);
+                if (data.type === 'move') {
+                    setGameState(prev => ({
+                        ...prev,
+                        board: data.board,
+                        turn: data.next_turn,
+                        status: data.status,
+                        game_over_reason: data.game_over_reason,
+                        white_time: data.white_time,
+                        black_time: data.black_time,
+                        last_move_at: data.last_move_at
+                    }));
+                    if (data.last_move) setLastMove(data.last_move);
+                    setValidMoves([]);
+                } else if (data.type === 'player_joined') {
+                    setGameState(prev => ({
+                        ...prev,
+                        players: { ...prev.players, [data.color]: data.username },
+                        last_move_at: data.last_move_at || prev.last_move_at
+                    }));
+
+                    const myName = user.username.trim().toLowerCase();
+                    const joinedName = (data.username || '').trim().toLowerCase();
+                    if (joinedName === myName) {
+                        setMyColor(data.color);
+                    }
+                } else if (data.type === 'game_over') {
+                    setGameState(prev => ({ ...prev, status: data.status, game_over_reason: data.game_over_reason }));
+                    setDrawOffer(null);
+                } else if (data.type === 'draw_offer') {
+                    setDrawOffer(data.from);
                 }
-            } else if (data.type === 'game_over') {
-                setGameState(prev => ({ ...prev, status: data.status, game_over_reason: data.game_over_reason }));
-                setDrawOffer(null);
-            } else if (data.type === 'draw_offer') {
-                setDrawOffer(data.from);
-            }
+            };
+
+            ws.onclose = (e) => {
+                console.log(`WebSocket closed: ${e.reason}. Attempting reconnect...`);
+                clearInterval(heartbeatInterval);
+                // Exponential backoff: 1s, 2s, 4s, 8s, max 30s
+                const delay = Math.min(1000 * Math.pow(2, reconnectCount), 30000);
+                reconnectTimeout = setTimeout(() => {
+                    reconnectCount++;
+                    connect();
+                }, delay);
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                ws.close();
+            };
         };
 
-        return () => ws.close();
+        connect();
+
+        return () => {
+            if (ws) ws.close();
+            if (reconnectTimeout) clearTimeout(reconnectTimeout);
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+        };
     }, [gameId, user?.username, fetchGame]);
 
     if (!gameState) return (

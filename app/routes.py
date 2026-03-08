@@ -452,6 +452,8 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = Qu
     await manager.connect(game_id, websocket)
     try:
         while True:
-            await websocket.receive_text()
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
     except WebSocketDisconnect:
         manager.disconnect(game_id, websocket)
