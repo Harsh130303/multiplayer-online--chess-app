@@ -55,12 +55,14 @@ const Game = () => {
 
     const handleJoin = async (color) => {
         try {
-            const res = await client.post(`/game/${gameId}/join`, null, { params: { color } });
+            const res = await client.post(`/game/${gameId}/join`, { color });
             if (res.data.success) {
                 fetchGame();
             }
         } catch (err) {
-            alert(err.response?.data?.detail || 'Failed to join');
+            const detail = err.response?.data?.detail;
+            const message = Array.isArray(detail) ? detail[0].msg : (detail || 'Failed to join');
+            alert(message);
         }
     };
 
