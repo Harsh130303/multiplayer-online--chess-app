@@ -17,7 +17,7 @@ const Game = () => {
 
     const fetchGame = useCallback(async () => {
         try {
-            const res = await client.get(`/game/${gameId}`);
+            const res = await client.get(`game/${gameId}`);
             if (res.data.success) {
                 setGameState(res.data);
                 determineColor(res.data);
@@ -44,7 +44,7 @@ const Game = () => {
 
     const fetchValidMoves = async (row, col) => {
         try {
-            const res = await client.get(`/game/${gameId}/valid_moves`, { params: { row, col } });
+            const res = await client.get(`game/${gameId}/valid_moves`, { params: { row, col } });
             if (res.data.success) {
                 setValidMoves(res.data.valid_moves);
             }
@@ -55,7 +55,7 @@ const Game = () => {
 
     const handleJoin = async (color) => {
         try {
-            const res = await client.post(`/game/${gameId}/join`, { color });
+            const res = await client.post(`game/${gameId}/join`, { color });
             if (res.data.success) {
                 fetchGame();
             }
@@ -69,7 +69,7 @@ const Game = () => {
     const handleResign = async () => {
         if (!window.confirm("Are you sure you want to resign?")) return;
         try {
-            await client.post(`/game/${gameId}/resign`);
+            await client.post(`game/${gameId}/resign`);
         } catch (err) {
             console.error('Resign failed', err);
         }
@@ -77,7 +77,7 @@ const Game = () => {
 
     const handleOfferDraw = async () => {
         try {
-            await client.post(`/game/${gameId}/draw/offer`);
+            await client.post(`game/${gameId}/draw/offer`);
             alert("Draw offer sent!");
         } catch (err) {
             console.error('Draw offer failed', err);
@@ -86,7 +86,7 @@ const Game = () => {
 
     const handleAcceptDraw = async () => {
         try {
-            await client.post(`/game/${gameId}/draw/accept`);
+            await client.post(`game/${gameId}/draw/accept`);
         } catch (err) {
             console.error('Accept draw failed', err);
         }
@@ -98,7 +98,7 @@ const Game = () => {
             return;
         }
         try {
-            const res = await client.post(`/game/${gameId}/move`, { from_square: from, to_square: to });
+            const res = await client.post(`game/${gameId}/move`, { from_square: from, to_square: to });
             if (!res.data.success) {
                 alert(res.data.error);
             }

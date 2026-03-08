@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
             formData.append('username', username);
             formData.append('password', password);
 
-            const response = await client.post('/login', formData, {
+            const response = await client.post('login', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             const newToken = response.data.access_token;
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, password) => {
         try {
-            await client.post('/register', { username, password });
+            await client.post('register', { username, password });
             return true;
         } catch (error) {
             console.error("Registration failed", error);

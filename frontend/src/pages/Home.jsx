@@ -24,7 +24,7 @@ const Home = () => {
     const createGame = async () => {
         try {
             const payload = timeControl.base ? { time_control: timeControl } : {};
-            const response = await client.post('/game/create', payload);
+            const response = await client.post('game/create', payload);
             if (response.data.success) {
                 navigate(`/game/${response.data.game_id}`);
             } else {

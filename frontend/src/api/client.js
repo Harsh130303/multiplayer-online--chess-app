@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const client = axios.create({
-    baseURL: `${window.location.protocol}//${window.location.host}/api`,
+    baseURL: `${window.location.protocol}//${window.location.host}/api/`,
 });
 
 // Add a request interceptor to include the token
