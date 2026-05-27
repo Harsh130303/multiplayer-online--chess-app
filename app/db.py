@@ -4,8 +4,8 @@ from sqlalchemy.orm import sessionmaker
 
 import os
 
-# Default to SQLite for local development
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./chess.db")
+# Default to PostgreSQL for local development
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/chess")
 
 # Railway/Render often provide "postgres://", but SQLAlchemy requires "postgresql://"
 if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):

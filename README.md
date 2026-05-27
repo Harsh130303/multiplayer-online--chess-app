@@ -20,7 +20,7 @@ A modern, full-stack multiplayer chess application built with **FastAPI** and **
 
 ### **Backend**
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python)
-- **Database**: PostgreSQL (Production) / SQLite (Local)
+- **Database**: PostgreSQL (Production & Local)
 - **ORM**: SQLAlchemy
 - **Real-Time**: WebSockets
 - **Auth**: JWT (Jose) & Passlib (BCrypt)
@@ -61,7 +61,15 @@ A modern, full-stack multiplayer chess application built with **FastAPI** and **
 2. Create a virtual environment: `python -m venv venv`
 3. Activate venv: `source venv/bin/activate` (or `venv\Scripts\activate` on Windows)
 4. Install dependencies: `pip install -r requirements.txt`
-5. Run the server: `python main.py`
+5. Configure your local PostgreSQL database and set the `DATABASE_URL` environment variable (defaults to `postgresql://postgres:postgres@localhost:5432/chess`):
+   ```bash
+   # On Windows (PowerShell)
+   $env:DATABASE_URL="postgresql://username:password@localhost:5432/db_name"
+   
+   # On Linux/macOS
+   export DATABASE_URL="postgresql://username:password@localhost:5432/db_name"
+   ```
+6. Run the server: `python main.py`
 
 ### **2. Frontend Setup**
 1. Navigate to frontend: `cd frontend`

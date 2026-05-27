@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: chess-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-chess}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Port 5432 remains unexposed to the public internet for maximum security.
+    # It is mapped only inside the internal network for the 'web' container.
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chess-web
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-chess}
+      - SECRET_KEY=${SECRET_KEY}
+      - PORT=8080
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
