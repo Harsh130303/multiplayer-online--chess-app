@@ -16,3 +16,6 @@ dist-ssr/
 .vscode/
 .idea/
 .DS_Store
+
+# Logs & Journals
+DEPLOYMENT_JOURNAL.md
