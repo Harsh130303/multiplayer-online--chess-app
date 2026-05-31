@@ -14,6 +14,46 @@ const Game = () => {
     const [lastMove, setLastMove] = useState(null);
     const [validMoves, setValidMoves] = useState([]);
     const [drawOffer, setDrawOffer] = useState(null); // 'white', 'black', or null
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyId = () => {
+        const text = gameId;
+        const onSuccess = () => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(onSuccess)
+                .catch(() => fallbackCopyText(text, onSuccess));
+        } else {
+            fallbackCopyText(text, onSuccess);
+        }
+    };
+
+    const fallbackCopyText = (text, onSuccess) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                onSuccess();
+            } else {
+                alert('Please copy the Game ID manually: ' + text);
+            }
+        } catch (err) {
+            alert('Please copy the Game ID manually: ' + text);
+        }
+        document.body.removeChild(textArea);
+    };
 
     const fetchGame = useCallback(async () => {
         try {
@@ -348,10 +388,20 @@ const Game = () => {
                             <span style={{ fontSize: '1rem', color: '#818cf8', fontWeight: '700', fontFamily: 'monospace' }}>{gameId.slice(0, 12)}</span>
                         </div>
                         <button
-                            onClick={() => { navigator.clipboard.writeText(gameId); alert('Copied!'); }}
-                            style={{ background: 'rgba(99, 102, 241, 0.1)', border: 'none', color: '#818cf8', padding: '8px 16px', borderRadius: '10px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+                            onClick={handleCopyId}
+                            style={{ 
+                                background: copied ? 'rgba(34, 197, 94, 0.15)' : 'rgba(99, 102, 241, 0.1)', 
+                                border: 'none', 
+                                color: copied ? '#22c55e' : '#818cf8', 
+                                padding: '8px 16px', 
+                                borderRadius: '10px', 
+                                fontSize: '0.8rem', 
+                                cursor: 'pointer', 
+                                fontWeight: 'bold',
+                                transition: 'all 0.2s'
+                            }}
                         >
-                            Copy ID
+                            {copied ? 'Copied!' : 'Copy ID'}
                         </button>
                     </div>
 
